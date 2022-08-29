@@ -31,3 +31,27 @@ module.exports.getAllProducts = async (req, res)=>{
         sendRes(res, err, 400, true)
     }
 }
+module.exports.getProductById = async (req, res)=>{
+    const{id} = req.params;
+    try{console.log('its works')
+const product = await Product.findById(id)
+sendRes(res,product,200)}
+catch(err){ sendRes(res, err, 400, true)}
+}
+module.exports.deleteProductById = async (req,res)=>{
+    const{id} =req.params;
+    try {
+        await Product.deleteOne({_id: id})
+        sendRes(res, null ,204)
+    } catch (error) {
+        sendRes(res, err, 400, true)
+    }
+}
+module.exports.checkIdInParams=(req,res,next)=>{
+    if(!req.params.id){
+        const err = {message:'No Id in params'}
+        sendRes(res, err, 400, true)
+        return
+    }
+    next()
+}
