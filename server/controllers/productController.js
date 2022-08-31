@@ -1,7 +1,7 @@
 
 const Product = require('../models/productModels')
 const{sendRes} =require("../helper/sendRes")
-const {makeFilterObject} = render('../helper/makeFilterObject')
+const {makeFilterObject} =require('../helper/makeFilterObject')
 
 module.exports.createNewProduct = async (req, res)=>{
     try {
@@ -42,7 +42,7 @@ module.exports.deleteProductById = async (req,res)=>{
     const{id} =req.params;
     try {
         await Product.deleteOne({_id: id})
-        sendRes(res, null ,204)
+        sendRes(res, {} ,204)
     } catch (error) {
         sendRes(res, err, 400, true)
     }
@@ -54,4 +54,23 @@ module.exports.checkIdInParams=(req,res,next)=>{
         return
     }
     next()
+}
+module.exports.updateProduct = async (req,res)=>{
+    const{id } =req.params;
+    try {
+        const product = await Product.findByIdAndUpdate(id,req.body,{
+            new: true,
+            runValidators: true
+        })
+        const products = await Product.find({category: 'Art Punk'})
+        // products.forEach
+        products.price = 1
+        pr.save({
+            runValidators: true
+        });
+        sendRes(res,product,200)
+    } catch (error) {
+        sendRes(res, err, 400, true)
+    
+    }
 }
