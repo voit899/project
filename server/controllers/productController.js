@@ -1,76 +1,76 @@
+const mongoose = require('mongoose');
 
-const Product = require('../models/productModels')
-const{sendRes} =require("../helper/sendRes")
-const {makeFilterObject} =require('../helper/makeFilterObject')
+const Product = require('../models/productModel');
+const { sendRes } = require('../helpers/sendRes');
+const { makeFilterObject } = require('../helpers/makeFilterObject');
 
-module.exports.createNewProduct = async (req, res)=>{
+module.exports.createNewProduct = async (req, res) => {
     try {
-        const {name,price,image,category,size} = req.body;
-        const newProduct = await Product.create({name,price,image,category,size})
-       
-  //send response     
-        sendRes(res, newProduct,201)
-        
-     
-     }catch(err){
-        sendRes(res,err,400,true)
-        
-     }
-        }
-
-
-module.exports.getAllProducts = async (req, res)=>{
-    // res.send('get works!')
-    const queryStr = JSON.stringify(req.query)
-    // const modifiedQueryStr = queryStr.replace(/\b(lt|lte|gt|gte)/g,expr =>$ + expr)
-    // const modyfiedQuery = JSON.parse(modifiedQueryStr)
-    // console.log(modyfiedQuery)
-    try{const pro = await Product.find()
-        sendRes(res,pro,200)}
-    catch(err){
-        sendRes(res, err, 400, true)
-    }
-}
-module.exports.getProductById = async (req, res)=>{
-    const{id} = req.params;
-    try{console.log('its works')
-const product = await Product.findById(id)
-sendRes(res,product,200)}
-catch(err){ sendRes(res, err, 400, true)}
-}
-module.exports.deleteProductById = async (req,res)=>{
-    const{id} =req.params;
-    try {
-        await Product.deleteOne({_id: id})
-        sendRes(res, {} ,204)
-    } catch (error) {
-        sendRes(res, err, 400, true)
-    }
-}
-module.exports.checkIdInParams=(req,res,next)=>{
-    if(!req.params.id){
-        const err = {message:'No Id in params'}
-        sendRes(res, err, 400, true)
-        return
-    }
-    next()
-}
-module.exports.updateProduct = async (req,res)=>{
-    const{id } =req.params;
-    try {
-        const product = await Product.findByIdAndUpdate(id,req.body,{
-            new: true,
-            runValidators: true
-        })
-        const products = await Product.find({category: 'Art Punk'})
-        // products.forEach
-        products.price = 1
-        pr.save({
-            runValidators: true
+        const { name, price, images, category, color, age, size } = req.body;
+        const newProduct = await Product.create({
+            name,
+            price,
+            images,
+            category,
+            color,
+            age,
+            size,
         });
-        sendRes(res,product,200)
-    } catch (error) {
-        sendRes(res, err, 400, true)
-    
+        sendRes(res, newProduct, 201);
+    } catch (err) {
+        sendRes(res, err, 400, true);
     }
-}
+};
+
+module.exports.getAllProducts = async (req, res) => {
+    const filterObject = makeFilterObject(req.query);
+    try {
+        const products = await Product.find(filterObject);
+        sendRes(res, products, 200);
+    } catch (err) {
+        sendRes(res, err, 400, true);
+    }
+};
+
+module.exports.getProductById = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const product = await Product.findById(id).populate('reviews');
+        if (!product) throw new Error('id does not exist');
+        sendRes(res, product, 200);
+    } catch (err) {
+        sendRes(res, err, 400, true);
+    }
+};
+
+module.exports.deleteProductById = async (req, res) => {
+    const { id } = req.params;
+    try {
+        await Product.findByIdAndDelete(id);
+        sendRes(res, {}, 204);
+    } catch (err) {
+        sendRes(res, err, 400, true);
+    }
+};
+
+module.exports.checkValidId = (req, res, next) => {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+        const error = { message: 'invalid id' };
+        sendRes(res, error, 400, true);
+        return;
+    }
+    next();
+};
+
+module.exports.updateProduct = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const product = await Product.findByIdAndUpdate(id, req.body, {
+            new: true,
+            runValidators: true,
+        });
+        sendRes(res, product, 200);
+    } catch (err) {
+        sendRes(res, err, 400, true);
+    }
+};

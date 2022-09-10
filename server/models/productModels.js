@@ -45,8 +45,20 @@ const productShelma = new mongoose.Schema({
         require: true,
         default: "medium"
     },
-    image: [String]
-});
+},
+    
+    {
+        toJSON:{virtuals: true},
+        toObject:{virtuals:true}
+
+    }
+);
+productShelma.virtual("reviews",{
+    localField:'_id',
+    foreignField:'product',
+    ref: 'reviews'
+})
+
 
 const Product = mongoose.model('product', productShelma);
 
